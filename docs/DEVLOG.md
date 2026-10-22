@@ -177,3 +177,25 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Running `npm run db:migrate` and `npm run db:seed` requires MySQL server running on host port 3306.
 
+---
+
+## [Phase 2, Task 1] Phase 2 Planning and Mathematical Concept Guide (2026-10-22)
+- **What I did**:
+  - Outlined Phase 2 Plan (`docs/phases/PHASE-2-plan.md`) for building the pure domain calculation engine with BigInt arithmetic, BOM calculations, zero-tolerance production balancing, and order quantity conversion.
+  - Authored comprehensive learning guide (`docs/learning/phase-2.md`) explaining floating-point failure modes (IEEE-754 `0.1 + 0.2`), integer base units (milligrams), basis points (`solids_bp`), cross-multiplication, and pure functions. Included a runnable balance example and 5 quiz questions.
+- **Why**:
+  - Adheres strictly to `PROJECT_GUIDE.md` Section 2: Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-2-plan.md`
+  - `docs/learning/phase-2.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - BigInt arithmetic, integer cross-multiplication, pure functional domain architecture, basis point representation.
+- **How verified**:
+  - Mathematical integrity checked against Section 4 golden numbers.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Guaranteeing division-free conversions and ensuring precision up to 6 decimal places for kg inputs.
+
