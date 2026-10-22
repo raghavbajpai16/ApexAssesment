@@ -116,3 +116,64 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - MySQL service connection needs to be active on port 3306 for live migrations and seeds.
 
+---
+
+## [Phase 1, Task 2] Database Migrations, Seed Script, Session Authentication, and Test Suite (2026-10-22)
+- **What I did**:
+  - **Schema Migrations**: Created `db/migrations/001_initial_schema.sql` defining `users`, `sessions` (D7: SHA-256 token hash), `materials` (D1: integer milligrams `on_hand BIGINT CHECK (on_hand >= 0)`), and `customers`.
+  - **Migration & Seed Scripts**: Created `db/migrate.js` (tracked in `schema_migrations`) and `db/seed.js` (populating Staff, Admin, 3 materials, 3 customers). Added `npm run db:migrate` and `npm run db:seed` to `package.json`.
+  - **Auth Core (`src/lib/auth.js`)**: Implemented `hashPassword` (bcrypt, 10 rounds), `verifyPassword` (constant time), `hashToken` (SHA-256), `createSession`, `destroySession`, `getSessionUser`, `requireUser`, and `requireRole`.
+  - **Input Validation (`src/lib/validation/auth.js`)**: Configured Zod `loginSchema` with email sanitization.
+  - **Route Handlers**: Implemented `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, and `GET /api/admin/check`.
+  - **UI & Layout**: Built `src/app/login/page.jsx` with 1-click demo credential autofill, `src/app/(app)/layout.jsx` with role-aware navigation and logout, `src/app/(app)/dashboard/page.jsx` with an interactive role probe, and `src/middleware.js` for UX route redirection.
+  - **Automated Vitest Suite**: Created `tests/auth.test.js` covering password hashing, session hashing, 401 unauthorized, 403 forbidden, and SQL injection safety.
+- **Why**:
+  - Fulfills the core security, database, and authentication requirements of Section 5, 6, and Phase 1 of `PROJECT_GUIDE.md`.
+  - Replaces vulnerable client-side JWTs with database-backed revocable sessions and enforces server-side role checks on every handler.
+- **Files changed**:
+  - `db/migrations/001_initial_schema.sql`
+  - `db/migrate.js`
+  - `db/seed.js`
+  - `package.json`
+  - `src/lib/auth.js`
+  - `src/lib/validation/auth.js`
+  - `src/app/api/auth/login/route.js`
+  - `src/app/api/auth/logout/route.js`
+  - `src/app/api/auth/me/route.js`
+  - `src/app/api/admin/check/route.js`
+  - `src/app/login/page.jsx`
+  - `src/components/LogoutButton.jsx`
+  - `src/app/(app)/layout.jsx`
+  - `src/app/(app)/dashboard/page.jsx`
+  - `src/middleware.js`
+  - `src/app/page.jsx`
+  - `src/app/globals.css`
+  - `tests/auth.test.js`
+- **Concepts used**:
+  - Database-backed sessions (D7), SHA-256 token hashing, HttpOnly cookie security, parameterized SQL (`?`), server-side role gating (`requireRole`), edge middleware UX redirection, Vitest unit testing.
+- **How verified**:
+  - Automated tests:
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 3ms
+    # ✓ tests/auth.test.js (11 tests) 501ms
+    # Test Files  2 passed (2)
+    # Tests  13 passed (13)
+    ```
+  - Production build verification:
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (11/11)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - *Bug*: Next.js build failed with `UnhandledSchemeError: Reading from "node:crypto" is not handled by plugins` and `mysql2` tracing errors in Edge Middleware.
+  - *Cause*: `src/middleware.js` imported `SESSION_COOKIE_NAME` from `src/lib/auth.js`, which unintentionally dragged Node-only dependencies (`mysql2`, `crypto`) into the Edge Runtime bundle.
+  - *Fix*: Defined `SESSION_COOKIE_NAME` directly within `src/middleware.js`, keeping Edge Middleware pure and lightweight. Switched `node:crypto` import to `crypto` in `src/lib/auth.js`. Added `export const dynamic = 'force-dynamic'` to dynamic API route handlers.
+- **Open risks / questions**:
+  - Running `npm run db:migrate` and `npm run db:seed` requires MySQL server running on host port 3306.
+
