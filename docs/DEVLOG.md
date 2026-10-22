@@ -199,3 +199,61 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Guaranteeing division-free conversions and ensuring precision up to 6 decimal places for kg inputs.
 
+---
+
+## [Phase 2, Task 2] Pure Domain Engine: BOM, Units, Production Balance, and Order Conversions (2026-10-22)
+- **What I did**:
+  - **Exact Units & Precision (`src/lib/domain/units.js`)**: Implemented string-based parsing (`kgToMg`) for inputs up to 6 decimal places without floating-point conversion, exact string formatting (`mgToKgString`), and basis point converters (`percentToBasisPoints`, `basisPointsToPercentString`).
+  - **Universal Formatters (`src/lib/format.js`)**: Implemented `formatKg`, `formatMg`, `formatPieces`, `formatMetres`, and `formatDiscrepancy`.
+  - **BOM Calculator (`src/lib/domain/bom.js`)**: Implemented pure `calculateBOM` adhering strictly to Section 4 formulas for single rolls and $N$ rolls. Enforces D6 integer milligram weights.
+  - **Production Balance Engine (`src/lib/domain/balance.js`)**: Implemented `checkProductionBalance` executing exact zero-tolerance integer cross-multiplication: `film_mg * 10000 + liquid_mg * solids_bp == (net_mg_total + waste_mg) * 10000`. Calculates exact shortage or surplus in milligrams and 3-decimal kg strings.
+  - **Order Quantity Engine (`src/lib/domain/orderQty.js`)**: Implemented `convertOrderQuantity` for rolls, metres, and kg. Rejects fractional quantities and calculates valid lower and upper whole-roll alternatives.
+  - **Validation Schemas (`src/lib/validation/domain.js`)**: Configured Zod schemas for specs, orders, materials, and production batches with decimal regex constraints.
+  - **Automated Vitest Suite (`tests/domain/*.test.js`)**: Added 29 new unit tests across 4 test files.
+- **Why**:
+  - Guarantees 100% mathematical precision with zero float drift across stock accounting.
+  - Separates pure business logic from database and UI layers as mandated by Section 3 and 4 of `PROJECT_GUIDE.md`.
+- **Files changed**:
+  - `src/lib/domain/units.js`
+  - `src/lib/format.js`
+  - `src/lib/domain/bom.js`
+  - `src/lib/domain/balance.js`
+  - `src/lib/domain/orderQty.js`
+  - `src/lib/validation/domain.js`
+  - `tests/domain/bom.test.js`
+  - `tests/domain/balance.test.js`
+  - `tests/domain/orderQty.test.js`
+  - `tests/domain/units.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - BigInt exact math, basis points, integer cross-multiplication, pure functions, boundary test-driven verification.
+- **How verified**:
+  - Full automated Vitest test suite (42 tests passing across 6 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 2ms
+    # ✓ tests/domain/bom.test.js (5 tests) 8ms
+    # ✓ tests/domain/balance.test.js (5 tests) 5ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 27ms
+    # ✓ tests/domain/units.test.js (11 tests) 28ms
+    # ✓ tests/auth.test.js (11 tests) 505ms
+    # Test Files  6 passed (6)
+    # Tests  42 passed (42)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (8/8)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - *Bug*: Parsing 0.500 kg directly with `parseFloat` would lose precision for deep fractional milligrams.
+  - *Fix*: Implemented string split and `padEnd(6, '0')` in `kgToMg` to guarantee integer milligram conversion without floats.
+- **Open risks / questions**:
+  - None. Pure domain engine is completely decoupled from external systems.
+
