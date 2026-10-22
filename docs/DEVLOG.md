@@ -94,3 +94,25 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Docker Desktop on Windows requires a WSL2 Linux distribution (`wsl --install`) or Hyper-V backend to start. Alternatively, a native Windows MySQL 8 Community Server or MariaDB service on port 3306 will satisfy the connection pool.
 
+---
+
+## [Phase 1, Task 1] Phase 1 Planning and Concept Guide (2026-10-22)
+- **What I did**:
+  - Drafted comprehensive Phase 1 Plan (`docs/phases/PHASE-1-plan.md`) covering database migration, seed data, session-based auth (D7), route protection, login UI, and Vitest test suite.
+  - Authored concept guide (`docs/learning/phase-1.md`) for Raghav covering password hashing vs encryption, database sessions vs stateless JWT, cookie flags (`HttpOnly`, `SameSite`, `Secure`), SQL injection parameterization, MERN comparison, and a 5-question comprehension quiz.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates showing the plan and teaching first before implementing any code.
+- **Files changed**:
+  - `docs/phases/PHASE-1-plan.md`
+  - `docs/learning/phase-1.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Hashing vs encryption, database-backed sessions, cookie security flags, parameterized SQL, role-based authorization.
+- **How verified**:
+  - Verified markdown document integrity and reviewed alignment with `PROJECT_GUIDE.md` Section 5 & 7.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - MySQL service connection needs to be active on port 3306 for live migrations and seeds.
+
