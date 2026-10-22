@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { SESSION_COOKIE_NAME } from './lib/auth';
+
+const SESSION_COOKIE_NAME = 'apex_session';
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;

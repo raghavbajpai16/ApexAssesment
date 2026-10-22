@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { extractSessionToken, destroySession, SESSION_COOKIE_NAME } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
   try {
     const token = extractSessionToken(request);
