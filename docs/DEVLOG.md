@@ -773,6 +773,75 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Ensuring fast query execution when aggregating historical events across 4 tables.
 
+---
+
+## [Phase 8, Task 2] Executive Dashboard, Unified Audit History Stream, and RFC-4180 CSV Export (2026-10-26)
+- **What I did**:
+  - **Service Layer (`src/lib/services/history.js`)**:
+    - Implemented `getUnifiedHistory()` aggregating events across 4 distinct tables: `material_txns`, `production_batches`, `finished_txns`, and `corrections`.
+    - Applied the Fan-In normalization pattern mapping heterogeneous records to `{ id, timestamp, category, event_type, reference, description, quantity_formatted, delta_direction, note, user_email }`.
+    - Supported category filtering (`all`, `materials`, `production`, `finished`, `corrections`, `orders`), text search, and chronological sorting (`ORDER BY timestamp DESC`).
+    - Implemented `exportHistoryToCSV()` strictly adhering to RFC-4180 (quoting fields, escaping inner quotes as `""`, comma separation, CRLF/LF line breaks).
+  - **Service Layer (`src/lib/services/dashboard.js`)**:
+    - Implemented `getDashboardSummary()` compiling high-level executive cards: raw materials inventory (kg/pieces), finished goods inventory (on hand, reserved, available rolls, total metres, net kg), customer orders pipeline (pending, partially dispatched, completed, cancelled), recent production batches, and live Invariant health checks (Inv 1, Inv 2, Inv 3).
+  - **API Route Handlers**:
+    - `src/app/api/dashboard/route.js`: Returns operational summary.
+    - `src/app/api/history/route.js`: Returns JSON list or streams RFC-4180 CSV attachment (`Content-Disposition: attachment; filename="apex_audit_history_*.csv"`).
+  - **Frontend UI**:
+    - `src/app/(app)/dashboard/page.jsx`: Executive command center with stock overview cards, quick action links, orders pipeline metrics, recent production activity, and live Invariant 1, 2, 3 health monitor.
+    - `src/app/(app)/history/page.jsx`: Unified audit stream UI with category filter chips, search input, live event count badge, delta indicators (`▲ Inflow`, `▼ Outflow`, `◆ Balance`), and 1-click CSV export button.
+    - `src/app/(app)/layout.jsx`: Added History tab to the top navigation bar.
+  - **Automated Vitest Suite (`tests/history.test.js`)**:
+    - Added 4 tests verifying multi-source aggregation across 4 streams, category filtering, search query filtering, and RFC-4180 CSV export formatting (headers, quotes, commas).
+- **Why**:
+  - Fulfills Section 5 and 7 requirements of `PROJECT_GUIDE.md` for unified chronological audit tracking across all enterprise stock events and 1-click compliance export.
+- **Files changed**:
+  - `src/lib/services/history.js`
+  - `src/lib/services/dashboard.js`
+  - `src/app/api/dashboard/route.js`
+  - `src/app/api/history/route.js`
+  - `src/app/(app)/dashboard/page.jsx`
+  - `src/app/(app)/history/page.jsx`
+  - `tests/history.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Fan-In event aggregation, polymorphic schema projection, RFC-4180 CSV formatting, executive operational metrics, reactive search filtering.
+- **How verified**:
+  - Vitest test suite (102 tests passing across 12 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 2ms
+    # ✓ tests/domain/bom.test.js (5 tests) 19ms
+    # ✓ tests/domain/balance.test.js (5 tests) 9ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 36ms
+    # ✓ tests/domain/units.test.js (11 tests) 36ms
+    # ✓ tests/materials.test.js (10 tests) 25ms
+    # ✓ tests/history.test.js (4 tests) 41ms
+    # ✓ tests/corrections.test.js (10 tests) 29ms
+    # ✓ tests/orders.test.js (12 tests) 73ms
+    # ✓ tests/production.test.js (13 tests) 72ms
+    # ✓ tests/specs.test.js (11 tests) 58ms
+    # ✓ tests/auth.test.js (11 tests) 526ms
+    # Test Files  12 passed (12)
+    # Tests  102 passed (102)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (15/15)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - None. Clean integration with Phase 1 through Phase 7 database schemas and services.
+- **Open risks / questions**:
+  - None. Complete full-stack system is operational, tested, and verified.
+
+
 
 
 
