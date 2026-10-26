@@ -30,3 +30,7 @@ next-env.d.ts
 .idea/
 .vscode/
 *.lnk
+
+# Internal Planning, Learning & Assessment Files - NEVER PUSH
+/internal_docs/
+PROJECT_GUIDE.md
