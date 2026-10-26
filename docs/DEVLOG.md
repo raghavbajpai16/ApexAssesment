@@ -751,6 +751,29 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Compensating transactions preserve all ledger invariants.
 
+---
+
+## [Phase 8, Task 1] Phase 8 Planning and Concept Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-8-plan.md` defining the UI polish, executive dashboard, and unified filterable history architecture. Outlined the Fan-In normalization pattern across 4 database event streams (`material_txns`, `production_batches`, `finished_txns`, `corrections`) and RFC-4180 CSV export endpoint.
+  - Authored `docs/learning/phase-8.md` teaching React Server Components vs Client Components in Next.js 14, event stream normalization, CSV streaming with proper quote-escaping, industrial actionable error UX, and accessibility principles.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-8-plan.md`
+  - `docs/learning/phase-8.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - React Server Components vs Client Components, Fan-In event stream normalization, RFC-4180 CSV export compliance, industrial actionable error UX, universal formatting tokens.
+- **How verified**:
+  - Verified markdown formatting and cross-referenced dashboard metrics with warehouse inventory models.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Ensuring fast query execution when aggregating historical events across 4 tables.
+
+
 
 
 
