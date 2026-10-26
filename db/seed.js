@@ -75,6 +75,62 @@ async function seed() {
       }
     }
 
+    // 4. Seed Section 4 Dummy Specification: SPEC-BOPP-48 (v1)
+    // 48 mm width, 25 GSM film, 22 GSM dry coat, 50% solids, 1,000 m roll length
+    // Snapshot: film 1.200 kg (1200000 mg), dry 1.056 kg (1056000 mg), liquid 2.112 kg (2112000 mg), net 2.256 kg (2256000 mg), core 1
+    const dummySpec = {
+      code: 'SPEC-BOPP-48',
+      version: 1,
+      name: 'Standard 48mm BOPP Packaging Tape',
+      parent_spec_id: null,
+      width_mm: 48,
+      film_gsm: 25,
+      coating_gsm: 22,
+      solids_bp: 5000,
+      roll_length_m: 1000,
+      film_mg_per_roll: 1200000,
+      dry_adhesive_mg_per_roll: 1056000,
+      liquid_adhesive_mg_per_roll: 2112000,
+      net_tape_mg_per_roll: 2256000,
+      core_pieces_per_roll: 1,
+      locked_at: null,
+    };
+
+    const [existingSpec] = await connection.execute(
+      'SELECT id FROM specs WHERE code = ? AND version = ?',
+      [dummySpec.code, dummySpec.version]
+    );
+
+    if (existingSpec.length === 0) {
+      await connection.execute(
+        `INSERT INTO specs (
+          code, version, name, parent_spec_id, width_mm, film_gsm, coating_gsm,
+          solids_bp, roll_length_m, film_mg_per_roll, dry_adhesive_mg_per_roll,
+          liquid_adhesive_mg_per_roll, net_tape_mg_per_roll, core_pieces_per_roll, locked_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          dummySpec.code,
+          dummySpec.version,
+          dummySpec.name,
+          dummySpec.parent_spec_id,
+          dummySpec.width_mm,
+          dummySpec.film_gsm,
+          dummySpec.coating_gsm,
+          dummySpec.solids_bp,
+          dummySpec.roll_length_m,
+          dummySpec.film_mg_per_roll,
+          dummySpec.dry_adhesive_mg_per_roll,
+          dummySpec.liquid_adhesive_mg_per_roll,
+          dummySpec.net_tape_mg_per_roll,
+          dummySpec.core_pieces_per_roll,
+          dummySpec.locked_at,
+        ]
+      );
+      console.log(`[SEED] Seeded dummy spec: ${dummySpec.code} v${dummySpec.version} (48mm × 1,000m)`);
+    } else {
+      console.log(`[SEED] Dummy spec already exists: ${dummySpec.code} v${dummySpec.version}`);
+    }
+
     console.log('[SEED] Database seeding complete!');
   } finally {
     if (connection) {

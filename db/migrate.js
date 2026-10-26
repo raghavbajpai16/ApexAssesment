@@ -11,6 +11,40 @@ const DB_CONFIG = {
   multipleStatements: true,
 };
 
+function splitStatements(sql) {
+  const statements = [];
+  let current = '';
+  let inTrigger = false;
+
+  const lines = sql.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('--')) continue;
+    if (!trimmed) continue;
+
+    if (/CREATE\s+TRIGGER/i.test(trimmed)) {
+      inTrigger = true;
+    }
+
+    current += line + '\n';
+
+    if (inTrigger) {
+      if (/END\s*;?$/i.test(trimmed)) {
+        inTrigger = false;
+        statements.push(current.trim());
+        current = '';
+      }
+    } else if (trimmed.endsWith(';')) {
+      statements.push(current.trim());
+      current = '';
+    }
+  }
+  if (current.trim()) {
+    statements.push(current.trim());
+  }
+  return statements;
+}
+
 async function runMigrations() {
   console.log(`[MIGRATE] Connecting to MySQL at ${DB_CONFIG.host}:${DB_CONFIG.port}...`);
   let connection;
@@ -62,7 +96,12 @@ async function runMigrations() {
       // Execute in a transaction
       await connection.beginTransaction();
       try {
-        await connection.query(sql);
+        const statements = splitStatements(sql);
+        for (const stmt of statements) {
+          if (stmt.trim()) {
+            await connection.query(stmt);
+          }
+        }
         await connection.execute('INSERT INTO schema_migrations (filename) VALUES (?)', [file]);
         await connection.commit();
         console.log(`[MIGRATE] Successfully applied: ${file}`);

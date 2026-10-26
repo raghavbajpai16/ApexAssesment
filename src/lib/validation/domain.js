@@ -19,6 +19,7 @@ export const specSchema = z.object({
     .min(1, 'Spec code is required')
     .max(50, 'Spec code cannot exceed 50 characters')
     .regex(/^[A-Za-z0-9_-]+$/, 'Spec code may only contain letters, numbers, hyphens, and underscores'),
+  name: z.string().trim().max(100).optional(),
   width_mm: z
     .number({ invalid_type_error: 'Width must be a number' })
     .int('Width in mm must be an integer')
@@ -34,7 +35,7 @@ export const specSchema = z.object({
   solids_percent: z
     .union([z.number(), z.string()])
     .refine((val) => {
-      const str = String(val).trim();
+      const str = String(val).trim().replace(/%$/, '');
       if (!decimalRegex2Dp.test(str)) return false;
       const num = parseFloat(str);
       return num > 0 && num <= 100;

@@ -279,3 +279,73 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Ensuring MySQL triggers work seamlessly with the `multipleStatements: true` migration runner.
 
+---
+
+## [Phase 3, Task 2] Specifications, Database Immutability Trigger, Service Layer, API Routes, UI, and Tests (2026-10-26)
+- **What I did**:
+  - **Database Migration (`db/migrations/002_specs_schema.sql`)**: Defined `specs` table with snapshot columns (`film_mg_per_roll`, `dry_adhesive_mg_per_roll`, `liquid_adhesive_mg_per_roll`, `net_tape_mg_per_roll`, `core_pieces_per_roll`), `version`, `parent_spec_id`, `locked_at`, CHECK constraints, and MySQL `BEFORE UPDATE` and `BEFORE DELETE` triggers (`trg_specs_prevent_update_when_locked`, `trg_specs_prevent_delete_when_locked`) signaling `SQLSTATE '45000'` upon attempted mutations to locked rows.
+  - **Migration Runner Enhancement (`db/migrate.js`)**: Added `splitStatements()` parser capable of executing compound `CREATE TRIGGER ... BEGIN ... END;` blocks alongside standard multi-statement SQL.
+  - **Database Seed (`db/seed.js`)**: Added Section 4 dummy specification `SPEC-BOPP-48` (48 mm, 25 GSM film, 22 GSM dry coat, 50% solids, 1,000 m roll length) with exact snapshot weights.
+  - **Service Layer (`src/lib/services/specs.js`)**: Implemented `calculateBOMPreview`, `createSpec`, `getSpecs`, `getSpecById`, `updateSpec`, `createSpecVersion`, and `lockSpec`. Enforces D6 whole-milligram validation (rejecting fractional milligrams with 422), D4 immutability guards (rejecting locked updates with 409), and formats BigInt rows into client-safe JSON decimal strings.
+  - **API Route Handlers**:
+    - `src/app/api/specs/route.js`: `GET` (list specs) and `POST` (create spec).
+    - `src/app/api/specs/[id]/route.js`: `GET` (fetch spec) and `PUT` (update unlocked spec).
+    - `src/app/api/specs/[id]/version/route.js`: `POST` (clone spec into version $N+1$ linked to `parent_spec_id`).
+    - `src/app/api/specs/preview/route.js`: `POST` (server-authoritative live BOM preview).
+  - **Frontend UI (`src/app/(app)/specs/page.jsx`)**: Built full tape specification and BOM interface featuring:
+    - Real-time server-authoritative BOM calculator preview as inputs change.
+    - Golden number toggle (1 roll vs 100 rolls).
+    - Spec creation form with D6 validation indicators.
+    - Registered specifications table showing dimension details, per-roll snapshots, lock badges (`🔒 Locked` vs `🟢 Unlocked`), and drawer inspection.
+    - "Create New Version" modal pre-populating parent values and incrementing version.
+  - **Automated Vitest Suite (`tests/specs.test.js`)**: Added 11 tests verifying Section 4 golden numbers (1 roll and 100 rolls), D6 whole-milligram rejection, unlocked updates, 409 Conflict rejection on locked specs, version cloning with `parent_spec_id`, and BigInt JSON serialization safety.
+- **Why**:
+  - Delivers complete tape specifications management with dual-layer immutability (application guard + database trigger) adhering to ADR D4, D6, and Section 3 of `PROJECT_GUIDE.md`.
+- **Files changed**:
+  - `db/migrations/002_specs_schema.sql`
+  - `db/migrate.js`
+  - `db/seed.js`
+  - `src/lib/services/specs.js`
+  - `src/app/api/specs/route.js`
+  - `src/app/api/specs/[id]/route.js`
+  - `src/app/api/specs/[id]/version/route.js`
+  - `src/app/api/specs/preview/route.js`
+  - `src/app/(app)/specs/page.jsx`
+  - `src/lib/validation/domain.js`
+  - `src/lib/domain/units.js`
+  - `tests/specs.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Immutability in financial/industrial manufacturing, specification version trees with parent pointer, database triggers (`BEFORE UPDATE` signaling `SQLSTATE '45000'`), dual-layer defense-in-depth, server-authoritative BOM calculations.
+- **How verified**:
+  - Automated Vitest test suite (53 tests passing across 7 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 3ms
+    # ✓ tests/domain/bom.test.js (5 tests) 8ms
+    # ✓ tests/domain/balance.test.js (5 tests) 8ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 25ms
+    # ✓ tests/domain/units.test.js (11 tests) 38ms
+    # ✓ tests/specs.test.js (11 tests) 30ms
+    # ✓ tests/auth.test.js (11 tests) 457ms
+    # Test Files  7 passed (7)
+    # Tests  53 passed (53)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (9/9)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - *Bug*: In `updateSpec` and `createSpecVersion`, passing `existing.solids_percent_str` (`"50.00%"`) to `specSchema` caused a validation error because `decimalRegex2Dp` rejected the trailing `%` sign.
+  - *Fix*: Enhanced `specSchema` and `percentToBasisPoints` to strip optional trailing `%` signs, and added `solids_percent_val` (`"50.00"`) to `formatSpecRow` to cleanly decouple display formatting from input values.
+- **Open risks / questions**:
+  - None. Immutability trigger and service guards are tested and ready for production batches in Phase 5.
+
+

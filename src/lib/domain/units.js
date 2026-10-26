@@ -84,7 +84,7 @@ export function percentToBasisPoints(percent) {
     throw new Error('Solids percentage cannot be empty.');
   }
 
-  const rawStr = String(percent).trim();
+  const rawStr = String(percent).trim().replace(/%$/, '');
   const match = rawStr.match(/^(\d+)(?:\.(\d+))?$/);
   if (!match) {
     throw new Error(`Invalid percentage: "${rawStr}". Must be a positive decimal number.`);
