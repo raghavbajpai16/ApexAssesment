@@ -441,6 +441,29 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Material transactions and stock balances are strictly reconciled.
 
+---
+
+## [Phase 5, Task 1] Phase 5 Planning and Concept Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-5-plan.md` defining the manufacturing execution module: `production_batches`, `finished_stock`, `finished_txns`, append-only triggers, multi-table atomic transactions with fixed locking order (`ORDER BY id ASC FOR UPDATE`), zero-tolerance production balance check (D3), material shortage refusal strings, automatic spec locking (D4), and Invariant 2 audit reconciliation.
+  - Authored `docs/learning/phase-5.md` covering multi-table ACID transactions, deadlock mechanics, circular wait elimination through ascending primary key locking, chemical production mass balance equations, automatic specification freeze, and finished goods reconciliation.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-5-plan.md`
+  - `docs/learning/phase-5.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Multi-table atomic transactions, deadlock prevention via global locking hierarchy, zero-tolerance integer cross-multiplication, chemical evaporation balance, automatic specification locking, finished goods double-entry ledger.
+- **How verified**:
+  - Verified markdown formatting, mathematical alignment with Section 4 golden numbers (100 rolls = 120 kg film, 211.2 kg adhesive, 100 cores), and shortage refusal messaging.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Ensuring concurrent production batches serialize cleanly without lock timeouts.
+
+
 
 
 
