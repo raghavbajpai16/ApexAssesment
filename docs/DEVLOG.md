@@ -257,3 +257,25 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Pure domain engine is completely decoupled from external systems.
 
+---
+
+## [Phase 3, Task 1] Phase 3 Planning and Concept Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-3-plan.md` detailing the tape specifications schema, MySQL `BEFORE UPDATE` trigger for immutability (D4), service layer, API route handlers, live BOM calculator UI, and test plan.
+  - Authored `docs/learning/phase-3.md` covering in-place mutation vs immutability, spec versioning with `parent_spec_id`, database triggers (`BEFORE UPDATE` signaling `SQLSTATE '45000'`), MySQL `CHECK` constraints, and server-authoritative BOM previews compared with MERN paradigms.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-3-plan.md`
+  - `docs/learning/phase-3.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Immutability in industrial accounting, specification version trees, database-level trigger defenses, CHECK constraints, server-authoritative previews.
+- **How verified**:
+  - Verified markdown formatting and cross-checked Section 4 golden numbers against the specification snapshot design.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Ensuring MySQL triggers work seamlessly with the `multipleStatements: true` migration runner.
+
