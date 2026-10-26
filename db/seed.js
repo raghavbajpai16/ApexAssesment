@@ -27,6 +27,8 @@ async function seed() {
     const users = [
       { email: 'staff@demo.local', role: 'staff', password: 'Staff123!' },
       { email: 'admin@demo.local', role: 'admin', password: 'Admin123!' },
+      { email: 'staff@apex.com', role: 'staff', password: 'password123' },
+      { email: 'admin@apex.com', role: 'admin', password: 'password123' },
     ];
 
     for (const u of users) {

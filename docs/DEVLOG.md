@@ -841,6 +841,94 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Complete full-stack system is operational, tested, and verified.
 
+---
+
+## [Phase 9, Task 1] Phase 9 Planning and Learning Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-9-plan.md` defining hardening, documentation, acceptance test execution, security review, and submission preparation.
+  - Authored `docs/learning/phase-9.md` teaching defense-in-depth security architecture, requirement traceability matrices, zero-secret repository hygiene, live demo narratives, and evaluation quiz.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-9-plan.md`
+  - `docs/learning/phase-9.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Defense-in-depth, requirement traceability, zero-secret repository hygiene, technical viva presentation strategy.
+- **How verified**:
+  - Verified markdown formatting and alignment with Sections 6, 8, 9, and 10 of `PROJECT_GUIDE.md`.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - None.
+
+---
+
+## [Phase 9, Task 2] Hardening, Requirements Traceability, Documentation Overhaul, and Submission Prep (2026-10-26)
+- **What I did**:
+  - **Traceability & Security Review (`docs/TRACEABILITY.md`)**:
+    - Compiled formal verification matrix mapping every requirement from `PROJECT_GUIDE.md` Section 9 to implementing files and automated tests.
+    - Verified all Section 8 acceptance scenarios: balanced 10-roll batches, 0.500 kg dry wastage, mass balance mismatch rejection, empty stock shortage refusal, core shortage refusal, 4.512 kg = 2 rolls conversion, 5 kg rejection with 4.512 & 6.768 kg alternatives, 3 concurrent orders of 2 rolls vs 3 stock, partial dispatch & cancel release, 403 Staff rejection, SQL injection safety, locked spec immutability, width/solids BOM dynamic reactivity.
+    - Audited Section 6 security controls: atomic transactions (`withTransaction`), fixed lock ordering (`ORDER BY id ASC FOR UPDATE`), idempotency deduplication (`idempotency_keys`), server-side role gating (`requireRole('admin')`), 100% parameterized SQL (`?`), Zod input schemas, bcryptjs hashing, HttpOnly / SameSite / Secure cookies, zero `dangerouslySetInnerHTML`.
+  - **Documentation Overhaul (`README.md`)**:
+    - Re-wrote `README.md` into a comprehensive production guide covering: executive summary & ADRs (D1 to D8), both demo credentials (Staff & Admin), Section 4 dummy specification details (`SPEC-BOPP-48`), step-by-step setup (local MySQL & Docker Compose), 7-step manual walkthrough guide matching Section 8 acceptance tests, system invariants, automated test summary (102 tests), and AI usage disclosure.
+  - **Repository Hygiene & Cleanliness**:
+    - Added `*.lnk` to `.gitignore` and removed accidental Windows shortcut files.
+    - Confirmed `.env` is strictly git-ignored; verified zero secrets or credentials exist in tracked files.
+    - Supported both `demo.local` and `apex.com` accounts with passwords in `db/seed.js` for frictionless evaluation.
+  - **Automated Verification**:
+    - Re-executed full Vitest suite: 12 test suites, 102 tests passed.
+    - Re-executed Next.js production build: 15 routes compiled with 0 errors.
+- **Why**:
+  - Fulfills all final delivery requirements of Section 6, 8, 9, and 10 of `PROJECT_GUIDE.md`, ensuring a fresh clone runs from the documentation alone.
+- **Files changed**:
+  - `README.md`
+  - `db/seed.js`
+  - `.gitignore`
+  - `docs/TRACEABILITY.md`
+  - `docs/phases/PHASE-9-plan.md`
+  - `docs/learning/phase-9.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Defense-in-depth auditing, requirement traceability matrix, zero-secret repository hygiene, production build validation.
+- **How verified**:
+  - Full automated Vitest suite:
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/domain/bom.test.js (5 tests) 17ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 41ms
+    # ✓ tests/domain/units.test.js (11 tests) 40ms
+    # ✓ tests/domain/balance.test.js (5 tests) 9ms
+    # ✓ tests/history.test.js (4 tests) 65ms
+    # ✓ tests/corrections.test.js (10 tests) 33ms
+    # ✓ tests/specs.test.js (11 tests) 61ms
+    # ✓ tests/orders.test.js (12 tests) 58ms
+    # ✓ tests/production.test.js (13 tests) 75ms
+    # ✓ tests/materials.test.js (10 tests) 32ms
+    # ✓ tests/health.test.js (2 tests) 3ms
+    # ✓ tests/auth.test.js (11 tests) 546ms
+    # Test Files  12 passed (12)
+    # Tests  102 passed (102)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (15/15)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - *Bug*: Windows shortcut `.lnk` files appeared in untracked files.
+  - *Fix*: Deleted `.lnk` files and added `*.lnk` to `.gitignore`.
+- **Open risks / questions**:
+  - None. System is 100% complete, hardened, tested, and ready for submission.
+
+
 
 
 
