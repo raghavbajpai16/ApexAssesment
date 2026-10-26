@@ -463,6 +463,92 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Ensuring concurrent production batches serialize cleanly without lock timeouts.
 
+---
+
+## [Phase 5, Task 2] Manufacturing Execution, Finished Stock Ledger, Invariant 2, and Tests (2026-10-26)
+- **What I did**:
+  - **Database Migration (`db/migrations/004_production_and_finished.sql`)**: Defined `production_batches`, `finished_stock`, `finished_txns` (append-only ledger), and triggers (`trg_finished_txns_prevent_update`, `trg_finished_txns_prevent_delete`) ensuring ledger immutability (D8).
+  - **Validation Schemas (`src/lib/validation/production.js`)**: Implemented `productionBatchInputSchema` with 6-decimal precision for film, adhesive, and wastage, positive integer roll counts, and case-insensitive shift enum (`morning`, `evening`, `night`).
+  - **Service Layer (`src/lib/services/production.js`)**:
+    - `logProductionBatch()`: Multi-table atomic transaction executing:
+      1. Idempotency check with cached response return.
+      2. Specification retrieval and expected BOM calculation.
+      3. Zero-tolerance mass balance verification (D3) via `checkProductionBalance()`, throwing 422 `ProductionBalanceError` on deficit or surplus.
+      4. Unique batch number verification.
+      5. Deadlock-free pessimistic locking (`ORDER BY id ASC FOR UPDATE`) on `materials`.
+      6. Availability checks with exact shortage refusal messages:
+         - Core: `"Production 100 rolls refused: need 100 cores, on hand 80, short by 20 cores"`
+         - Film: `"Production 100 rolls refused: need 120.000 kg film, on hand 80.000 kg, short by 40.000 kg film"`
+         - Adhesive: `"Production 100 rolls refused: need 211.200 kg adhesive, on hand 150.000 kg, short by 61.200 kg adhesive"`
+      7. Deducts materials and appends 3 negative `production_issue` rows to `material_txns`.
+      8. Upserts `finished_stock` (`on_hand_rolls = on_hand_rolls + rolls`) and appends positive `production` entry to `finished_txns`.
+      9. Automatically locks the referenced specification (`locked_at = NOW()`) under Rule D4.
+    - `getProductionBatches()` & `getFinishedStock()` & `getFinishedTransactions()`: Formatted queries joining specs and user details with available roll counts, total metres, and total net kg.
+    - `reconcileFinishedStock()`: Admin audit verifying Invariant 2 (`finished_stock.on_hand_rolls == SUM(finished_txns.rolls)`).
+  - **API Route Handlers**:
+    - `POST /api/production`: Records batch execution with `Idempotency-Key` support.
+    - `GET /api/production`: Batch audit log.
+    - `GET /api/finished`: Finished stock on-hand, reserved, and available per spec.
+    - `GET /api/finished/transactions`: Finished transaction history.
+    - `GET /api/finished/reconcile`: Admin audit for Invariant 2.
+  - **Frontend UI**:
+    - `src/app/(app)/production/page.jsx`: Manufacturing interface with live BOM comparison, Section 4 golden autofill, real-time balance indicator, and production batch history table.
+    - `src/app/(app)/finished/page.jsx`: Finished goods warehouse view with spec cards, available roll metrics, Invariant 2 live reconciliation status badge, and finished stock transaction audit ledger.
+  - **Automated Vitest Suite (`tests/production.test.js`)**: Added 13 tests covering Section 4 golden 100-roll batch, 422 balance mismatch rejection, exact core/film/adhesive shortage refusal strings, idempotency deduplication, duplicate batch rejection, and Invariant 2 reconciliation audits.
+- **Why**:
+  - Delivers complete end-to-end manufacturing execution, preventing overdraws and deadlocks with multi-table pessimistic locking and enforcing exact mass conservation.
+- **Files changed**:
+  - `db/migrations/004_production_and_finished.sql`
+  - `src/lib/validation/production.js`
+  - `src/lib/services/production.js`
+  - `src/app/api/production/route.js`
+  - `src/app/api/finished/route.js`
+  - `src/app/api/finished/transactions/route.js`
+  - `src/app/api/finished/reconcile/route.js`
+  - `src/app/(app)/production/page.jsx`
+  - `src/app/(app)/finished/page.jsx`
+  - `tests/production.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Multi-table atomic transactions, global lock hierarchy (`ORDER BY id ASC FOR UPDATE`) to prevent circular wait deadlocks, double-entry finished goods ledgers, automatic spec freezing (D4), zero-tolerance mass balance (D3), Invariant 2 reconciliation.
+- **How verified**:
+  - Vitest test suite (76 tests passing across 9 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 4ms
+    # ✓ tests/domain/bom.test.js (5 tests) 8ms
+    # ✓ tests/domain/balance.test.js (5 tests) 7ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 41ms
+    # ✓ tests/domain/units.test.js (11 tests) 33ms
+    # ✓ tests/materials.test.js (10 tests) 26ms
+    # ✓ tests/specs.test.js (11 tests) 50ms
+    # ✓ tests/production.test.js (13 tests) 69ms
+    # ✓ tests/auth.test.js (11 tests) 507ms
+    # Test Files  9 passed (9)
+    # Tests  76 passed (76)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (12/12)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - *Bug 1*: `checkProductionBalance` call in `logProductionBatch` was missing `solids_bp` and `net_mg_total` properties, causing `TypeError: Cannot convert undefined to a BigInt`.
+  - *Fix*: Updated `checkProductionBalance` call in `logProductionBatch` to pass `spec.solids_bp` and `expectedBOM.total.net_tape_mg`.
+  - *Bug 2*: `shift` enum in `productionBatchInputSchema` threw validation error for capitalized inputs like `"Morning"`.
+  - *Fix*: Added `z.preprocess` to convert shift inputs to lowercase before enum validation.
+  - *Bug 3*: `diff_kg_str` in `formatProductionBatchRow` used `mgToKgString(diffMg, 3)` producing `"0.000"` instead of `"0.000 kg"`.
+  - *Fix*: Updated to `formatKg(diffMg)` for consistent `"0.000 kg"` representation.
+- **Open risks / questions**:
+  - None. Production batches, material issues, and finished stock credits are strictly balanced and tested.
+
+
 
 
 
