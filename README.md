@@ -22,7 +22,57 @@ Standard inventory applications rely on floating-point arithmetic and mutable `U
 
 ---
 
-## 2. Demo Accounts
+## 2. Visual Interface & Working Demos
+
+### 1. Executive Dashboard Command Center
+Real-time operational summary featuring raw material stocks, warehouse balances, order pipeline metrics, and continuous system invariant health monitoring.
+![Executive Dashboard Command Center](./screenshots/02_dashboard_command_center.png)
+
+---
+
+### 2. Raw Materials Inventory & Double-Entry Ledger
+Complete ledger tracking for BOPP film, liquid adhesive, and paper cores with row-locked atomic deductions, shortage guards, and live Invariant 1 reconciliation.
+![Raw Materials Inventory Ledger](./screenshots/03_materials_inventory_ledger.png)
+
+---
+
+### 3. Specifications & Live Interactive BOM Calculator
+Canonical `SPEC-BOPP-48` specification management with real-time multi-roll BOM scaling, integer milligram derivations, and dual-layer locked spec immutability.
+![Specifications and Live BOM Calculator](./screenshots/04_specs_live_bom.png)
+
+---
+
+### 4. Production Execution & Zero-Tolerance Mass Balance
+Coating batch execution enforcing exact chemical mass balance. Rejects imbalanced inputs with exact shortage/surplus values; commits balanced runs atomically across five tables.
+![Production Execution and Mass Balance](./screenshots/05_production_mass_balance.png)
+
+---
+
+### 5. Customer Orders Pipeline & Concurrency-Safe Reservations
+Commercial order processing with multi-unit conversion (rolls, metres, kg), whole-roll alternative suggestions (e.g. $1,500\text{ m} \to 1,000\text{ m}$ or $2,000\text{ m}$), pessimistic inventory locking, partial dispatch, and cancellation release.
+![Customer Orders Pipeline](./screenshots/06_orders_pipeline.png)
+
+---
+
+### 6. Administrative Compensating Corrections
+Regulatory audit-grade corrections implementing the Reversal + Replacement compensating ledger pattern (ADR D8) with pre-flight negative stock simulation and mandatory rationale sign-offs.
+![Administrative Compensating Corrections](./screenshots/07_admin_corrections.png)
+
+---
+
+### 7. Unified Audit Trail Stream & RFC-4180 CSV Export
+Chronological event fan-in aggregating material transactions, production runs, finished goods movements, and administrative adjustments with filter chips and 1-click CSV export.
+![Unified Audit Trail Stream](./screenshots/08_unified_audit_history.png)
+
+---
+
+### 8. Secure Authentication Portal
+Dual-role cryptographic authentication using salted bcrypt hashing and SHA-256 session hash storage, featuring 1-click evaluation autofill buttons.
+![Authentication Portal](./screenshots/01_login_page.png)
+
+---
+
+## 3. Demo Accounts
 
 The login portal (`/login`) includes **1-Click Quick Fill** buttons for immediate evaluation:
 
@@ -33,7 +83,7 @@ The login portal (`/login`) includes **1-Click Quick Fill** buttons for immediat
 
 ---
 
-## 3. Reference Specification (`SPEC-BOPP-48`)
+## 4. Reference Specification (`SPEC-BOPP-48`)
 
 The canonical benchmark specification registered in the database seed:
 - **Dimensions**: $48\text{ mm}$ width $\times$ $1,000\text{ m}$ length ($48\text{ m}^2$ area)
@@ -44,7 +94,7 @@ The canonical benchmark specification registered in the database seed:
 
 ---
 
-## 4. Setup & Running Locally
+## 5. Setup & Running Locally
 
 ### Prerequisites
 - **Node.js**: v18.17+ or v20+
@@ -81,20 +131,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 5. System Features at a Glance
-
-| Feature | Route | Key Capabilities |
-|---|---|---|
-| **Executive Dashboard** | `/dashboard` | Real-time on-hand stock cards, open order pipeline, recent production batches, and live invariant health checks. |
-| **Raw Materials Ledger** | `/materials` | Material receipts, damage/scrap reporting, row-locked deductions, shortage refusals, and Invariant 1 reconciliation. |
-| **Specifications & BOM** | `/specs` | Live multi-roll BOM calculator, integer-derived golden numbers, locked spec freeze, and version cloning ($N \to N+1$). |
-| **Production Execution** | `/production` | Zero-tolerance mass balance verification, shortage/surplus refusal, atomic inventory deductions, finished stock creation. |
-| **Customer Orders** | `/orders` | Multi-unit conversion (rolls/m/kg), whole-roll alternative suggestions (e.g. 1,500m $\to$ 1,000m or 2,000m), pessimistic reservation locks, partial dispatch, and balance cancellation release. |
-| **Admin Corrections** | `/corrections` | Reversal + replacement compensating entries (ADR D8), pre-flight negative stock simulation, reservation breach protection, staff 403 block. |
-| **Unified Audit History** | `/history` | 4-stream fan-in event timeline (materials, production, orders, corrections), category filtering, search, and streaming RFC-4180 CSV export. |
-
----
-
 ## 6. System Invariants
 
 The system maintains 5 core mathematical and structural invariants:
@@ -106,7 +142,7 @@ The system maintains 5 core mathematical and structural invariants:
 
 ---
 
-## 7. Automated Test Suite
+## 7. Automated Test Suite Summary
 
 ```text
  ✓ tests/domain/balance.test.js   - Chemical mass balance, zero tolerance, scrap

@@ -126,6 +126,8 @@ The application uses an event-sourced relational architecture implemented in MyS
 
 ### Feature 1: Authentication & Role-Based Access Control
 
+![Authentication Portal](./screenshots/01_login_page.png)
+
 #### How It Works
 - User authentication is built from foundational cryptography without third-party black-box dependencies.
 - Passwords are salted and hashed using `bcryptjs` with 12 salt rounds.
@@ -148,6 +150,8 @@ The application uses an event-sourced relational architecture implemented in MyS
 
 ### Feature 2: Raw Material Inventory & Ledger Management (`/materials`)
 
+![Raw Materials Inventory and Ledger](./screenshots/03_materials_inventory_ledger.png)
+
 #### How It Works
 - Raw material stock is tracked in two tables:
   1. `materials`: Cached aggregate balance table (`id`, `name`, `type`, `unit`, `on_hand_mg`, `on_hand_pieces`).
@@ -168,6 +172,8 @@ The application uses an event-sourced relational architecture implemented in MyS
 ---
 
 ### Feature 3: Specifications & Live BOM Calculation Engine (`/specs`)
+
+![Specifications and Live BOM Calculator](./screenshots/04_specs_live_bom.png)
 
 #### How It Works
 - The specification engine calculates raw material requirements down to single-milligram precision.
@@ -190,6 +196,8 @@ The application uses an event-sourced relational architecture implemented in MyS
 ---
 
 ### Feature 4: Production Execution & Zero-Tolerance Mass Balance (`/production`)
+
+![Production Mass Balance Verification](./screenshots/05_production_mass_balance.png)
 
 #### How It Works
 Adhesive tape manufacturing is a physical conversion process. What enters the coating machine must equal what exits, minus evaporative carrier solvent (water in emulsion acrylics) and accounted scrap.
@@ -223,6 +231,8 @@ $$\mathbf{\text{film\_mg} \times 10,000 + \text{liquid\_mg} \times \text{solids\
 ---
 
 ### Feature 5: Customer Orders & Concurrency-Safe Reservations (`/orders`)
+
+![Customer Orders Pipeline and Reservations](./screenshots/06_orders_pipeline.png)
 
 #### How It Works
 - Customers frequently order tape using different units of measure: whole rolls, linear metres, or gross kilograms.
@@ -260,6 +270,8 @@ $$\mathbf{\text{film\_mg} \times 10,000 + \text{liquid\_mg} \times \text{solids\
 
 ### Feature 6: Administrative Compensating Corrections (`/corrections`)
 
+![Administrative Compensating Corrections](./screenshots/07_admin_corrections.png)
+
 #### How It Works
 - Traditional CRUD applications allow admins to run `UPDATE material_txns SET qty = 140 WHERE id = 1`. In an accounting-grade industrial system, this is illegal because it destroys forensic transaction history.
 - The Apex system implements the **Compensating Reversal Pattern (ADR D8)**:
@@ -290,6 +302,8 @@ $$\mathbf{\text{film\_mg} \times 10,000 + \text{liquid\_mg} \times \text{solids\
 
 ### Feature 7: Unified Audit Timeline & RFC-4180 CSV Export (`/history`)
 
+![Unified Audit History Stream](./screenshots/08_unified_audit_history.png)
+
 #### How It Works
 - An operations manager needs a single chronological timeline rather than checking 4 separate ledgers.
 - The **History Fan-In Aggregation Service (`history.js`)** performs normalized union queries across:
@@ -313,6 +327,8 @@ $$\mathbf{\text{film\_mg} \times 10,000 + \text{liquid\_mg} \times \text{solids\
 
 ### Feature 8: Real-Time Executive Dashboard (`/dashboard`)
 
+![Executive Command Center Dashboard](./screenshots/02_dashboard_command_center.png)
+
 #### How It Works
 - The command center aggregates high-level metrics across the entire enterprise in real time:
   - **Raw Materials**: On-hand balances for Film (kg), Liquid Adhesive (kg), and Cores (pcs).
@@ -320,6 +336,7 @@ $$\mathbf{\text{film\_mg} \times 10,000 + \text{liquid\_mg} \times \text{solids\
   - **Orders Pipeline**: Open orders count, total rolls ordered, pending shipment balances.
   - **Production Activity**: Recent batches, total rolls produced, scrap rates.
   - **Live Invariant Health Widget**: Real-time validation checks for Invariant 1 (Materials) and Invariant 2 (Finished Stock).
+
 
 ---
 

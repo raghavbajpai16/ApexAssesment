@@ -30,8 +30,10 @@ export default async function AppShellLayout({ children }) {
       {/* Top Header & Role-Aware Navigation Bar */}
       <header
         style={{
-          backgroundColor: '#0f172a',
-          borderBottom: '1px solid #1e293b',
+          backgroundColor: 'rgba(7, 13, 24, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           position: 'sticky',
           top: 0,
           zIndex: 40,
@@ -39,9 +41,9 @@ export default async function AppShellLayout({ children }) {
       >
         <div
           style={{
-            maxWidth: '1200px',
+            maxWidth: '1280px',
             margin: '0 auto',
-            padding: '0.85rem 1.5rem',
+            padding: '0.85rem 1.75rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -50,21 +52,44 @@ export default async function AppShellLayout({ children }) {
           }}
         >
           {/* Logo & Navigation Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
             <Link
               href="/dashboard"
               style={{
-                fontSize: '1.15rem',
-                fontWeight: '800',
-                color: '#38bdf8',
-                letterSpacing: '-0.02em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
                 textDecoration: 'none',
               }}
             >
-              APEX TAPE STOCK
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1rem',
+                  boxShadow: '0 0 12px rgba(56, 189, 248, 0.4)',
+                }}
+              >
+                🎞️
+              </div>
+              <span
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: '800',
+                  color: '#f8fafc',
+                  letterSpacing: '-0.025em',
+                }}
+              >
+                APEX <span style={{ color: '#38bdf8' }}>STOCK</span>
+              </span>
             </Link>
 
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.9rem' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.88rem', fontWeight: 600 }}>
               <Link href="/dashboard" style={{ color: '#cbd5e1' }}>
                 Dashboard
               </Link>
@@ -91,14 +116,13 @@ export default async function AppShellLayout({ children }) {
                   href="/corrections"
                   style={{
                     color: '#d8b4fe',
-                    fontWeight: '600',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.35rem',
+                    gap: '0.4rem',
                   }}
                 >
                   Corrections
-                  <span className="badge badge-admin" style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}>
+                  <span className="badge badge-admin" style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem' }}>
                     Admin
                   </span>
                 </Link>
@@ -107,9 +131,19 @@ export default async function AppShellLayout({ children }) {
           </div>
 
           {/* User Profile & Logout */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{user.email}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+                background: 'rgba(255, 255, 255, 0.04)',
+                padding: '0.35rem 0.75rem',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+              }}
+            >
+              <span style={{ fontSize: '0.82rem', color: '#cbd5e1', fontWeight: 500 }}>{user.email}</span>
               <span className={isAdmin ? 'badge badge-admin' : 'badge badge-staff'}>
                 {user.role}
               </span>
@@ -120,7 +154,7 @@ export default async function AppShellLayout({ children }) {
       </header>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <main style={{ flex: 1, maxWidth: '1280px', width: '100%', margin: '0 auto', padding: '2rem 1.75rem' }}>
         {children}
       </main>
     </div>
