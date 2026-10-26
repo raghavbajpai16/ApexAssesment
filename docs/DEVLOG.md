@@ -548,6 +548,29 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Production batches, material issues, and finished stock credits are strictly balanced and tested.
 
+---
+
+## [Phase 6, Task 1] Phase 6 Planning and Concept Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-6-plan.md` defining the order fulfillment lifecycle: `orders`, `dispatches`, `cancellations`, multi-unit quantity conversions (`rolls`, `metres`, `kg`), pessimistic stock reservation (`SELECT ... FOR UPDATE` on `finished_stock`), exact shortage refusal messages, partial dispatching, cancellation of unfulfilled balances, and reconciliation audits for Invariants 2 and 3.
+  - Authored `docs/learning/phase-6.md` covering the accounting distinction between physical on-hand stock and reserved commitments, derived availability (`on_hand - reserved`), finite state machines for orders, concurrency race conditions in inventory reservations, and MERN vs MySQL InnoDB row locking.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-6-plan.md`
+  - `docs/learning/phase-6.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Finite state machines, pessimistic row locking (`SELECT ... FOR UPDATE`), derived vs stored inventory metrics, partial fulfillment accounting, dual-layer audit invariants.
+- **How verified**:
+  - Verified markdown formatting, mathematical alignment with Section 4 order quantity conversions, and consistency with Section 5 schema design.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Guaranteeing that concurrent dispatches and cancellations serialize properly without leaving orphaned reservations.
+
+
 
 
 
