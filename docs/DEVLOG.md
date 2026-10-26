@@ -570,6 +570,84 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Guaranteeing that concurrent dispatches and cancellations serialize properly without leaving orphaned reservations.
 
+---
+
+## [Phase 6, Task 2] Customer Orders, Stock Reservation, Dispatch, and Cancellations (2026-10-26)
+- **What I did**:
+  - **Database Migration (`db/migrations/005_orders_and_fulfillment.sql`)**: Defined `orders` (with `rolls_ordered`, `rolls_dispatched`, `rolls_cancelled`, status, CHECK constraints), `dispatches` (shipment tracking), and `cancellations` (released un-dispatched balances).
+  - **Validation Schemas (`src/lib/validation/orders.js`)**: Implemented strict Zod schemas for order creation (multi-unit: rolls, metres, kg), dispatch (positive roll count <= remaining), and cancellation.
+  - **Service Layer (`src/lib/services/orders.js`)**:
+    - `createOrder()`: Validates input quantity using `convertOrderQuantity()`, rejecting non-whole rolls with valid alternatives (422). Transactionally locks `finished_stock` (`SELECT ... FOR UPDATE`), verifies available rolls (`on_hand - reserved`), refuses shortages with exact message:
+      `"Order 100 rolls refused: on hand 80, reserved 50, available 30, short by 70 rolls"`. Increments `reserved_rolls` and inserts `orders` record.
+    - `dispatchOrder()`: Transactionally locks order and `finished_stock`, verifies remaining balance, decrements both `on_hand_rolls` and `reserved_rolls`, records `dispatches` entry, appends signed negative ledger entry (`kind: 'dispatch'`) to `finished_txns`, and transitions status (`completed` if fully shipped, else `partially_dispatched`).
+    - `cancelOrder()`: Transactionally locks order and `finished_stock`, releases remaining un-dispatched rolls (`reserved_rolls = reserved_rolls - remaining`), records `cancellations` entry, leaves physical `on_hand_rolls` untouched, and updates order status.
+    - `reconcileOrdersAndStock()`: Admin audit verifying **Invariant 2** (`finished_stock.reserved_rolls == SUM(open orders)`) and **Invariant 3** (`rolls_dispatched + rolls_cancelled <= rolls_ordered`).
+  - **API Route Handlers**:
+    - `GET /api/orders`: Order listing with status and customer filtering.
+    - `POST /api/orders`: Order creation with 422 alternatives and 409 shortage handling.
+    - `GET /api/orders/[id]`: Order detail with nested dispatches and cancellations history.
+    - `POST /api/orders/[id]/dispatch`: Full or partial dispatch endpoint.
+    - `POST /api/orders/[id]/cancel`: Balance cancellation endpoint.
+    - `GET /api/orders/reconcile`: Admin-only audit endpoint for Invariants 2 & 3.
+    - `GET /api/customers`: Dropdown customer list.
+  - **Frontend UI (`src/app/(app)/orders/page.jsx`)**:
+    - Order intake drawer with real-time conversion preview, 1-click alternative selection, and shortage alert panels.
+    - Status filter chips (`all`, `pending`, `partially_dispatched`, `completed`, `cancelled`).
+    - Orders table with ordered/shipped/cancelled/remaining breakdown, metres, and net kg.
+    - Partial/full dispatch modal and balance cancellation modal.
+    - Invariants 2 & 3 live reconciliation status card.
+  - **Automated Vitest Suite (`tests/orders.test.js`)**: Added 12 tests covering quantity conversion alternatives, exact shortage refusal strings, row-locking reservation, partial dispatching, balance release cancellation, and reconciliation audits.
+- **Why**:
+  - Implements complete commercial order lifecycle and finished goods fulfillment, preventing overselling via pessimistic row locks and maintaining dual-entry ledger traceability.
+- **Files changed**:
+  - `db/migrations/005_orders_and_fulfillment.sql`
+  - `src/lib/validation/orders.js`
+  - `src/lib/services/orders.js`
+  - `src/app/api/orders/route.js`
+  - `src/app/api/orders/[id]/route.js`
+  - `src/app/api/orders/[id]/dispatch/route.js`
+  - `src/app/api/orders/[id]/cancel/route.js`
+  - `src/app/api/orders/reconcile/route.js`
+  - `src/app/api/customers/route.js`
+  - `src/app/(app)/orders/page.jsx`
+  - `tests/orders.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Finite state machines, pessimistic row locking (`SELECT ... FOR UPDATE`), derived vs stored inventory metrics, partial fulfillment accounting, dual-layer audit invariants.
+- **How verified**:
+  - Vitest test suite (88 tests passing across 10 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 3ms
+    # ✓ tests/domain/bom.test.js (5 tests) 8ms
+    # ✓ tests/domain/balance.test.js (5 tests) 6ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 38ms
+    # ✓ tests/domain/units.test.js (11 tests) 40ms
+    # ✓ tests/materials.test.js (10 tests) 27ms
+    # ✓ tests/orders.test.js (12 tests) 56ms
+    # ✓ tests/specs.test.js (11 tests) 50ms
+    # ✓ tests/production.test.js (13 tests) 57ms
+    # ✓ tests/auth.test.js (11 tests) 511ms
+    # Test Files  10 passed (10)
+    # Tests  88 passed (88)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (13/13)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - None. Clean integration with Phase 2 domain quantity conversion engine.
+- **Open risks / questions**:
+  - None. Orders, dispatches, cancellations, and reservations are strictly reconciled.
+
+
 
 
 
