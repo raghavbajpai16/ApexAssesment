@@ -647,6 +647,29 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Orders, dispatches, cancellations, and reservations are strictly reconciled.
 
+---
+
+## [Phase 7, Task 1] Phase 7 Planning and Concept Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-7-plan.md` defining the administrative correction module: `corrections` schema with mandatory reason and optional "Approved By" authorization, reversal + replacement compensating transactions (ADR D8), atomic pre-flight checks under row locks, negative stock refusal, reservation breach refusal, and preservation of Invariants 1, 2, and 3.
+  - Authored `docs/learning/phase-7.md` teaching why industrial accountants never erase entries, forensic auditability under SOX compliance, trigger defense-in-depth, pre-flight simulation mechanics, and MERN vs MySQL append-only ledgers.
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-7-plan.md`
+  - `docs/learning/phase-7.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Compensating transactions (reversal + replacement), append-only immutable ledgers, atomic pre-flight invariant simulations, administrative role authorization (`requireRole('admin')`).
+- **How verified**:
+  - Verified markdown formatting and aligned pre-flight refusal checks with Section 6 and 7 constraints.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Ensuring multi-material production batch corrections lock materials in ascending ID order to prevent deadlocks.
+
+
 
 
 
