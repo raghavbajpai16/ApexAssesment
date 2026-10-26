@@ -669,6 +669,89 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Ensuring multi-material production batch corrections lock materials in ascending ID order to prevent deadlocks.
 
+---
+
+## [Phase 7, Task 2] Admin Corrections, Reversal + Replacement Ledgers, and Tests (2026-10-26)
+- **What I did**:
+  - **Database Migration (`db/migrations/006_corrections_schema.sql`)**: Defined `corrections` audit table (`target_type`, `target_id`, `reason`, `approved_by`, `admin_id`, `payload`, `created_at`).
+  - **Validation Schemas (`src/lib/validation/corrections.js`)**: Implemented strict Zod schemas for correcting receipts, damages, and production batches with mandatory reason (min 5 chars) and optional authorization sign-off (`approved_by`).
+  - **Service Layer (`src/lib/services/corrections.js`)**:
+    - Role gating: `requireRole('admin')` enforced on all correction procedures (throws 403 Forbidden for Staff).
+    - `correctMaterialReceipt()`:
+      - Validates original transaction was a receipt and has not been previously corrected.
+      - Pre-flight check under row lock (`SELECT ... FOR UPDATE`): verifies `current_on_hand + net_delta >= 0`. Rejects with 409 if stock would drop negative:
+        `"Correction rejected: would cause [Material] on-hand to drop below 0 (short by [X] kg)"`.
+      - Appends `correction_reversal` row (`-orig_qty`) and `correction_replacement` row (`+new_qty`) to `material_txns` linked to `corrects_txn_id`.
+      - Updates `materials.on_hand` by net delta. Original row is completely preserved (ADR D8).
+    - `correctMaterialDamage()`:
+      - Validates original was a damage report.
+      - Appends reversal (restores original damage) and replacement (applies corrected damage).
+    - `correctProductionBatch()`:
+      - Verifies replacement batch satisfies zero-tolerance mass balance (ADR D3).
+      - Deadlock-free row locks on materials (`ORDER BY id ASC FOR UPDATE`) and `finished_stock`.
+      - Pre-flight check 1: verifies no material drops below 0.
+      - Pre-flight check 2: verifies `projected_on_hand >= reserved_rolls`. Rejects with 409 if correction would break active customer reservations:
+        `"Correction rejected: would reduce finished stock below active reservations (projected on hand: [X] rolls, but [Y] rolls are reserved)"`.
+      - Appends 3 reversal + 3 replacement rows to `material_txns`, 1 reversal + 1 replacement to `finished_txns`, and updates stock balances.
+    - `getCorrections()`: Retrieves audit log with admin email and parsed payload.
+  - **API Route Handlers**:
+    - `POST /api/corrections/material-receipt`: Receipt correction endpoint.
+    - `POST /api/corrections/material-damage`: Damage report correction endpoint.
+    - `POST /api/corrections/production-batch`: Production batch correction endpoint.
+    - `GET /api/corrections`: Corrections audit log endpoint.
+  - **Frontend UI (`src/app/(app)/corrections/page.jsx`)**:
+    - Admin-only portal with role badge, ADR D8 immutability explainer, modals for receipts, damages, and batches, mandatory reason input, "Approved By" field, and audit table with JSON diff inspector.
+  - **Automated Vitest Suite (`tests/corrections.test.js`)**: Added 10 tests covering Staff 403 rejection, unauthenticated rejection, valid receipt reversal/replacement, negative stock refusal, damage correction, mass balance refusal, reservation breach refusal, duplicate correction guard, and audit log formatting.
+- **Why**:
+  - Eliminates destructive `UPDATE` and `DELETE` on ledgers, guaranteeing unbreakable compliance auditability and preventing negative stock or broken customer orders.
+- **Files changed**:
+  - `db/migrations/006_corrections_schema.sql`
+  - `src/lib/validation/corrections.js`
+  - `src/lib/services/corrections.js`
+  - `src/app/api/corrections/route.js`
+  - `src/app/api/corrections/material-receipt/route.js`
+  - `src/app/api/corrections/material-damage/route.js`
+  - `src/app/api/corrections/production-batch/route.js`
+  - `src/app/(app)/corrections/page.jsx`
+  - `tests/corrections.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Compensating transactions (reversal + replacement), append-only immutable ledgers, atomic pre-flight invariant simulations, administrative role authorization (`requireRole('admin')`).
+- **How verified**:
+  - Vitest test suite (98 tests passing across 11 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/health.test.js (2 tests) 2ms
+    # ✓ tests/domain/bom.test.js (5 tests) 11ms
+    # ✓ tests/domain/balance.test.js (5 tests) 8ms
+    # ✓ tests/domain/orderQty.test.js (8 tests) 35ms
+    # ✓ tests/domain/units.test.js (11 tests) 40ms
+    # ✓ tests/corrections.test.js (10 tests) 31ms
+    # ✓ tests/materials.test.js (10 tests) 30ms
+    # ✓ tests/orders.test.js (12 tests) 64ms
+    # ✓ tests/production.test.js (13 tests) 114ms
+    # ✓ tests/specs.test.js (11 tests) 50ms
+    # ✓ tests/auth.test.js (11 tests) 539ms
+    # Test Files  11 passed (11)
+    # Tests  98 passed (98)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (14/14)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - None. Clean integration with Phase 4 and Phase 5 double-entry ledgers.
+- **Open risks / questions**:
+  - None. Compensating transactions preserve all ledger invariants.
+
+
 
 
 
