@@ -370,5 +370,77 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - Ensuring simultaneous damage requests serialize cleanly on row locks to prevent negative inventory balances.
 
+---
+
+## [Phase 4, Task 2] Material Stock Ledger, Row Locking, Shortage Refusal, and Reconcile (2026-10-26)
+- **What I did**:
+  - **Database Migration (`db/migrations/003_materials_ledger.sql`)**: Defined `material_txns` append-only ledger (`receipt`, `production_issue`, `damage`, `correction_reversal`, `correction_replacement`), `idempotency_keys` table for deduplicating client retries, and database triggers (`trg_material_txns_prevent_update`, `trg_material_txns_prevent_delete`) ensuring ledger immutability (D8).
+  - **Validation Schemas (`src/lib/validation/materials.js`)**: Configured strict schemas for receipts and damages enforcing positive quantities up to 6 decimal places (D2) and whole integer counts for cores.
+  - **Service Layer (`src/lib/services/materials.js`)**:
+    - `recordMaterialReceipt()`: Transactionally acquires exclusive row locks (`SELECT ... FOR UPDATE`), increments `materials.on_hand`, appends positive ledger entry, and records idempotency key.
+    - `recordMaterialDamage()`: Transactionally verifies availability under row lock. If requested exceeds on-hand, refuses with the exact deficit message (Section 7): *"Damage 5.000 kg film refused: on hand 3.250 kg, short by 1.750 kg"*. If sufficient, decrements on-hand and writes signed negative ledger row.
+    - `getMaterialInventory()` & `getMaterialTransactions()`: Returns formatted balances and paginated audit history.
+    - `reconcileMaterials()`: Verifies Invariant 1 (`materials.on_hand == SUM(material_txns.qty)`) with zero-tolerance equality.
+  - **API Route Handlers**:
+    - `GET /api/materials`: Balances for film, adhesive, and cores.
+    - `POST /api/materials/receipt`: Stock receipt with `Idempotency-Key` header support.
+    - `POST /api/materials/damage`: Damage report with 409 Shortage Refusal handling.
+    - `GET /api/materials/transactions`: Filterable transaction history.
+    - `GET /api/materials/reconcile`: Admin-only verification of Invariant 1.
+  - **Frontend UI (`src/app/(app)/materials/page.jsx`)**:
+    - Stock summary cards for film, adhesive, and cores.
+    - Modals for stock receipt and damage reporting with client-side UUID generation (`Idempotency-Key`).
+    - Reconcile audit trigger and live Invariant 1 status badge.
+    - Real-time audit history table.
+  - **Automated Vitest Suite (`tests/materials.test.js`)**: Added 10 tests verifying exact milligram conversions, negative input rejection, shortage refusal strings, idempotency deduplication, and Invariant 1 reconciliation.
+- **Why**:
+  - Eliminates race conditions and overdraws through pessimistic locking and guarantees complete audit traceability via double-entry ledgers.
+- **Files changed**:
+  - `db/migrations/003_materials_ledger.sql`
+  - `src/lib/validation/materials.js`
+  - `src/lib/services/materials.js`
+  - `src/app/api/materials/route.js`
+  - `src/app/api/materials/receipt/route.js`
+  - `src/app/api/materials/damage/route.js`
+  - `src/app/api/materials/transactions/route.js`
+  - `src/app/api/materials/reconcile/route.js`
+  - `src/app/(app)/materials/page.jsx`
+  - `tests/materials.test.js`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Append-only ledgers, pessimistic concurrency control (`SELECT ... FOR UPDATE`), ACID transactions, client idempotency keys, meaningful deficit calculations, reconciliation audits.
+- **How verified**:
+  - Vitest test suite (63 tests passing across 8 suites):
+    ```bash
+    npm test
+    # Output:
+    # RUN  v2.1.9
+    # ✓ tests/domain/orderQty.test.js (8 tests) 34ms
+    # ✓ tests/domain/bom.test.js (5 tests) 12ms
+    # ✓ tests/domain/balance.test.js (5 tests) 12ms
+    # ✓ tests/health.test.js (2 tests) 5ms
+    # ✓ tests/domain/units.test.js (11 tests) 36ms
+    # ✓ tests/materials.test.js (10 tests) 27ms
+    # ✓ tests/specs.test.js (11 tests) 53ms
+    # ✓ tests/auth.test.js (11 tests) 476ms
+    # Test Files  8 passed (8)
+    # Tests  63 passed (63)
+    ```
+  - Production build verification (`npm run build`):
+    ```bash
+    npm run build
+    # Output:
+    # ✓ Compiled successfully
+    # ✓ Generating static pages (10/10)
+    # ✓ Finalizing page optimization
+    ```
+- **Bugs found and fixes**:
+  - *Bug*: In `recordMaterialDamage`, string formatting for piece shortages needed to explicitly check unit type to avoid showing `"0.000 kg"` for paper cores.
+  - *Fix*: Added conditional formatting branching on `mat.unit === 'mg'` vs `mat.unit === 'pieces'`.
+- **Open risks / questions**:
+  - None. Material transactions and stock balances are strictly reconciled.
+
+
 
 
