@@ -348,4 +348,27 @@ This document tracks all implementation steps, architectural reasoning, verifica
 - **Open risks / questions**:
   - None. Immutability trigger and service guards are tested and ready for production batches in Phase 5.
 
+---
+
+## [Phase 4, Task 1] Phase 4 Planning and Concept Guide (2026-10-26)
+- **What I did**:
+  - Prepared `docs/phases/PHASE-4-plan.md` defining the material inventory ledger (`material_txns`), idempotency mechanism (`idempotency_keys`), append-only database triggers, row-locking transaction services (`SELECT ... FOR UPDATE`), shortage refusal logic, and reconcile verification.
+  - Authored `docs/learning/phase-4.md` teaching double-entry ledger architecture vs stored balances, pessimistic row locking with InnoDB, transaction rollbacks, idempotency deduplication for network retries, and Invariant 1 (`materials.on_hand == SUM(material_txns.qty)`).
+- **Why**:
+  - `PROJECT_GUIDE.md` Section 2 mandates Plan -> Teach -> Build -> Verify -> Log -> Teach-back -> Gate.
+- **Files changed**:
+  - `docs/phases/PHASE-4-plan.md`
+  - `docs/learning/phase-4.md`
+  - `docs/DEVLOG.md`
+  - `docs/AI_USAGE.md`
+- **Concepts used**:
+  - Double-entry inventory ledger, pessimistic concurrency control (`SELECT ... FOR UPDATE`), atomic transactions, idempotency tokens, audit reconciliation.
+- **How verified**:
+  - Verified markdown formatting, cross-referenced Invariant 1 and shortage refusal strings with Section 7 of `PROJECT_GUIDE.md`.
+- **Bugs found and fixes**:
+  - None.
+- **Open risks / questions**:
+  - Ensuring simultaneous damage requests serialize cleanly on row locks to prevent negative inventory balances.
+
+
 
