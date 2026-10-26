@@ -14,11 +14,8 @@ export function middleware(request) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // 2. Already logged in -> redirect away from /login
+  // 2. Allow /login page to load cleanly
   if (pathname === '/login') {
-    if (sessionToken) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
     return NextResponse.next();
   }
 

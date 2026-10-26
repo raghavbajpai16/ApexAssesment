@@ -31,8 +31,7 @@ export default function LoginPage() {
       }
 
       // Successful login -> Navigate to application dashboard
-      router.push('/dashboard');
-      router.refresh();
+      window.location.href = '/dashboard';
     } catch {
       setError('Network connection error. Please verify the server is running.');
       setIsLoading(false);
