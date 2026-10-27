@@ -1,23 +1,21 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
+import { parseDbConfig } from '../src/lib/dbConfig.js';
 
-const DB_CONFIG = {
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'tape_user',
-  password: process.env.DB_PASSWORD || 'tape_pass',
-  database: process.env.DB_NAME || 'apex_tape_stock',
-};
+const dbConfig = parseDbConfig();
 
 async function seed() {
-  console.log(`[SEED] Connecting to MySQL at ${DB_CONFIG.host}:${DB_CONFIG.port}...`);
+  console.log(`[SEED] Connecting to MySQL at ${dbConfig.host}:${dbConfig.port}...`);
   let connection;
   try {
-    connection = await mysql.createConnection(DB_CONFIG);
+    connection = await mysql.createConnection({
+      ...dbConfig,
+      connectTimeout: 5000,
+    });
   } catch (err) {
-    console.error(`[SEED ERROR] Could not connect to MySQL:`, err.message);
-    console.error(`Please verify MySQL is running on port ${DB_CONFIG.port} and .env credentials are correct.`);
-    process.exit(1);
+    console.warn(`[SEED] Could not connect to MySQL at ${dbConfig.host}:${dbConfig.port} (${err.message})`);
+    console.warn(`[SEED] Skipping database seed. In-memory mock database is already pre-seeded with demo accounts.`);
+    process.exit(0);
   }
 
   try {

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: apex-tape-stock
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      # Optional: To connect a persistent cloud MySQL database (e.g. Aiven, TiDB, Railway):
+      # Add DATABASE_URL in the Render dashboard under Environment:
+      # - key: DATABASE_URL
+      #   sync: false

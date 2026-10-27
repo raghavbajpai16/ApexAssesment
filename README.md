@@ -146,7 +146,34 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 6. System Invariants
+## 6. Zero-Config Deployment to Render
+
+This application includes a native Render Blueprint (`render.yaml`), cloud database SSL auto-negotiation, and an in-memory transactional mock fallback engine. You can deploy it in two ways:
+
+### Option A: 1-Click Zero-Database Preview (Instant Deployment)
+Deploy the application with zero external database configuration. It runs on the high-fidelity in-memory engine with all demo accounts pre-seeded.
+
+1. Push this repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com), click **New +** &rarr; **Blueprint** (or **Web Service**).
+3. Connect your repository. Render automatically reads `render.yaml`:
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start:prod`
+4. Click **Apply** / **Deploy**.
+5. Once live, open your `.onrender.com` URL and log in immediately using the 1-Click Quick Fill buttons (`staff@demo.local` or `admin@demo.local`).
+
+### Option B: Production Deployment with Persistent Cloud MySQL
+For permanent data retention across Render free-tier sleep cycles:
+
+1. Create a free MySQL database on any provider (e.g. [Aiven](https://aiven.io), [TiDB Cloud](https://tidbcloud.com), [Railway](https://railway.app), or [Clever Cloud](https://clever-cloud.com)).
+2. In the Render Web Service settings, go to the **Environment** tab and add:
+   - `DATABASE_URL`: `mysql://<user>:<password>@<host>:<port>/<dbname>?ssl-mode=REQUIRED`
+     *(Or individual variables: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL=true`)*
+3. Trigger a manual deploy. The `start:prod` pipeline automatically executes all schema migrations (`001` to `006`), triggers, and demo seeds before launching the web server.
+
+---
+
+## 7. System Invariants
 
 The system maintains 5 core mathematical and structural invariants:
 1. **Invariant 1 (Materials)**: $\text{materials.on\_hand} = \sum \text{material\_txns.qty}$
@@ -157,7 +184,7 @@ The system maintains 5 core mathematical and structural invariants:
 
 ---
 
-## 7. Automated Test Suite Summary
+## 8. Automated Test Suite Summary
 
 ```text
  ✓ tests/domain/balance.test.js   - Chemical mass balance, zero tolerance, scrap

@@ -4,6 +4,22 @@ const SESSION_COOKIE_NAME = 'apex_session';
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  // Enforce HTTPS in production behind reverse proxies (like Render)
+  // to ensure Secure HttpOnly session cookies are accepted and never dropped.
+  const proto = request.headers.get('x-forwarded-proto');
+  const host = request.headers.get('host') || '';
+  if (
+    process.env.NODE_ENV === 'production' &&
+    proto === 'http' &&
+    !host.startsWith('localhost') &&
+    !host.startsWith('127.0.0.1')
+  ) {
+    const httpsUrl = request.nextUrl.clone();
+    httpsUrl.protocol = 'https:';
+    return NextResponse.redirect(httpsUrl, 301);
+  }
+
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
   // 1. Root path redirect

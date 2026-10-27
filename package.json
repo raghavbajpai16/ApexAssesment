@@ -10,7 +10,11 @@
     "lint": "next lint",
     "test": "vitest run",
     "db:migrate": "node db/migrate.js",
-    "db:seed": "node db/seed.js"
+    "db:seed": "node db/seed.js",
+    "start:prod": "node db/migrate.js && node db/seed.js && next start"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
