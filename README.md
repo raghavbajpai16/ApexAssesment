@@ -66,15 +66,30 @@ Chronological event fan-in aggregating material transactions, production runs, f
 
 ---
 
-### 8. Secure Authentication Portal
-Dual-role cryptographic authentication using salted bcrypt hashing and SHA-256 session hash storage, featuring 1-click evaluation autofill buttons.
-![Authentication Portal](./screenshots/01_login_page.png)
+### 8. Classic Authentication Portal
+Dual-role cryptographic authentication using salted bcrypt hashing and SHA-256 session hash storage, featuring 1-click evaluation autofill buttons and AI login discovery banner.
+![Classic Authentication Portal](./screenshots/01_login_page.png)
+
+---
+
+### 9. Next-Gen AI Neural Authentication Portal (`/ai-login`)
+Autonomous cognitive security gateway featuring an interactive HTML5 neural particle mesh canvas, real-time telemetry HUD, and 3 AI authentication pathways:
+- **Neural Biometrics**: 468-point 3D facial landmark scanner HUD with liveness verification and SHA-256 token minting.
+- **AI Voice & NLP Autonomous Sign-In**: Natural language intent parser with acoustic equalizer visualizer.
+- **Quantum Vault**: Real-time cryptographic entropy radar and behavioral bot-detection telemetry.
+![Next-Gen AI Neural Authentication Portal](./screenshots/09_ai_neural_login.png)
+
+---
+
+### 10. Live Biometric Face & Optical Acquisition HUD
+Multi-phase biometric verification tracking optical sensor calibration, 3D landmark mesh mapping, and zero-knowledge identity matching against the Apex manufacturing ledger.
+![Live Biometric Face & Optical Acquisition HUD](./screenshots/10_biometric_face_scan.png)
 
 ---
 
 ## 3. Demo Accounts
 
-The login portal (`/login`) includes **1-Click Quick Fill** buttons for immediate evaluation:
+The login portals (`/login` and `/ai-login`) include **1-Click Quick Fill** and **Neural Biometric Persona** buttons for immediate evaluation:
 
 | Role | Email | Password | Primary Capabilities |
 |---|---|---|---|

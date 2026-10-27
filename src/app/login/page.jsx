@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -82,6 +83,39 @@ export default function LoginPage() {
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(56, 189, 248, 0.1)',
         }}
       >
+        {/* New AI Login Switch Banner */}
+        <Link
+          href="/ai-login"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0.65rem 0.9rem',
+            marginBottom: '1.5rem',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%)',
+            border: '1px solid rgba(56, 189, 248, 0.35)',
+            boxShadow: '0 0 15px rgba(56, 189, 248, 0.15)',
+            textDecoration: 'none',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+            <span style={{ fontSize: '1.2rem' }}>🧠</span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc' }}>
+                Try Next-Gen AI Login
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                Neural Biometrics & Autonomous Voice Auth
+              </div>
+            </div>
+          </div>
+          <span style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 700 }}>
+            Launch AI →
+          </span>
+        </Link>
+
         {/* Brand Icon & Heading */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div

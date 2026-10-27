@@ -14,8 +14,13 @@ export function middleware(request) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // 2. Allow /login page to load cleanly
-  if (pathname === '/login') {
+  // 2. Allow /login and AI login pages to load cleanly
+  if (
+    pathname === '/login' ||
+    pathname.startsWith('/login/') ||
+    pathname === '/ai-login' ||
+    pathname.startsWith('/ai-login/')
+  ) {
     return NextResponse.next();
   }
 
